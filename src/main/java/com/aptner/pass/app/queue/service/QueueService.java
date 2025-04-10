@@ -19,7 +19,7 @@ public class QueueService {
 
     public Flux<QueueStatusResponse> observeQueueStatus(String token) {
         String queueKey = QUEUE_KEY_PREFIX; // 동적으로 구성 가능
-
+        System.out.println("🔁 RSocket 연결됨 - 사용자 토큰: " + token);
         // 1. Redis ZSET에 사용자 추가 (score = 현재시간)
         passRedisTempalte.opsForZSet().add(queueKey, token, System.currentTimeMillis());
 

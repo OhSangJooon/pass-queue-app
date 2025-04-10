@@ -11,7 +11,7 @@ spring:
   rsocket:
     server:
       transport: websocket
-      port: 7000
+      port: 7010
       mapping-path: /rsocket
 
 logging:
@@ -36,6 +36,8 @@ logging:
     com.aptner: trace
     com.zaxxer.hikari: debug
     jdbc: trace
+    io.rsocket: DEBUG
+    org.springframework.messaging.rsocket: DEBUG
 
 
 management:
