@@ -1,0 +1,35 @@
+application:
+  name: dining-queue
+server:
+  port: 8500
+  tomcat:
+    basedir: .
+    connection-timeout: 600000 # 10 min
+    max-connections: 20960
+    threads:
+      max: 20960
+      min-spare: 50
+    accept-count: 5000
+#    mbeanregistry: # 모니터링 추가시 활성화
+#      enabled=true:
+    accesslog:
+      enabled: true
+      directory: logs
+      suffix: .log
+      prefix: access_log
+      file-date-format: .yyyy-MM-dd
+      pattern: "%{yyyy-MM-dd HH:mm:ss}t %s %r %{User-Agent}i %{Referer}i %a %b %D"
+      max-days: 7
+      rotate: true
+
+
+spring:
+  profiles:
+    active: local, aws
+
+
+logging:
+  pattern:
+    file: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr([${LOG_LEVEL_PATTERN:%5p}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+    console: "%clr(%d{${LOG_DATEFORMAT_PATTERN:yyyy-MM-dd'T'HH:mm:ss.SSSXXX}}){faint} %clr([${LOG_LEVEL_PATTERN:%5p}]) %clr(${PID:- }){magenta} %clr(---){faint} %clr([%t]){faint} %clr(%-40.40logger{39}){cyan} %clr(:){faint} %m%n${LOG_EXCEPTION_CONVERSION_WORD:%wEx}"
+

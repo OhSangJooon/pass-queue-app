@@ -1,0 +1,53 @@
+server:
+  port: 8500
+  ssl:
+    enabled: false
+
+spring:
+  data:
+    redis:
+      host: localhost
+      port: 6379
+  rsocket:
+    server:
+      transport: websocket
+      port: 7000
+      mapping-path: /rsocket
+
+logging:
+  file:
+    name: ./logs/app.local.log
+  logback:
+    rollingpolicy:
+      max-history: 3
+      max-file-size: 100MB
+      file-name-pattern: "${LOG_FILE}.%d{yyyy-MM-dd}.%i.gz"
+  level:
+    org.springframework: info
+    org.springframework.web.client: debug
+    org.springframework.jdbc: trace
+    org.springframework.jdbc.core: trace
+    org.springframework.security: trace
+    org.springframework.transaction: trace
+    com.querydsl: debug
+    org.hibernate.sql: trace
+    org.hibernate.type: trace
+    org.hibernate.orm.jdbc.bind: trace
+    com.aptner: trace
+    com.zaxxer.hikari: debug
+    jdbc: trace
+
+
+management:
+  endpoint:
+    shutdown:
+      access: unrestricted
+    beans:
+      access: unrestricted
+    loggers:
+      access: unrestricted
+    web:
+      exposure:
+        include: "*"
+    health:
+      show-details: "always"
