@@ -1,5 +1,6 @@
 package com.aptner.pass.app.queue.controller;
 
+import com.aptner.pass.app.queue.model.QueueResponse;
 import com.aptner.pass.app.queue.model.QueueStatusRequest;
 import com.aptner.pass.app.queue.model.QueueStatusResponse;
 import io.rsocket.Payload;
@@ -10,9 +11,11 @@ import io.rsocket.core.RSocketServer;
 import io.rsocket.transport.netty.client.TcpClientTransport;
 import io.rsocket.transport.netty.server.TcpServerTransport;
 import io.rsocket.util.DefaultPayload;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.platform.commons.logging.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import reactor.core.publisher.Flux;
@@ -21,28 +24,26 @@ import java.time.Duration;
 import java.util.logging.Logger;
 
 @SpringBootTest
+@AutoConfigureWebTestClient
 public class QueueRSocketTest {
-//    private static final Logger logger = (Logger) LoggerFactory.getLogger(QueueRSocketTest.class);
-
     @Autowired
     private RSocketRequester.Builder requesterBuilder;
 
-    @Test
-    void testQueueStatusRoute() {
-        RSocketRequester requester = requesterBuilder
+    private RSocketRequester requester;
+
+    @BeforeEach
+    void setup() {
+        this.requester = requesterBuilder
                 .connectTcp("localhost", 7010)
                 .block();
+    }
 
-        QueueStatusRequest request = new QueueStatusRequest("test-user");
-
-        Flux<QueueStatusResponse> response = requester
-                .route("queue.status")
-                .data(request)
-                .retrieveFlux(QueueStatusResponse.class)
-                .timeout(Duration.ofSeconds(5));  // 타임아웃을 5초로 늘려보세요.
-
-        response
-                .doOnNext(res -> System.out.println("✅ 응답: " + res))
-                .blockLast(Duration.ofSeconds(3)); // 3초 안에 응답 없으면 timeout
+    @Test
+    void streamTest() {
+        requester.route("queue.status")
+                .retrieveFlux(QueueResponse.class)
+                .take(5) // 예: 5개만 받고 종료
+                .doOnNext(System.out::println)
+                .blockLast(); // 실제 구독
     }
 }

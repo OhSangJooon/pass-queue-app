@@ -1,5 +1,6 @@
 package com.aptner.pass.app.queue.controller;
 
+import com.aptner.pass.app.queue.model.QueueResponse;
 import com.aptner.pass.app.queue.model.QueueStatusRequest;
 import com.aptner.pass.app.queue.model.QueueStatusResponse;
 import com.aptner.pass.app.queue.service.QueueService;
@@ -12,6 +13,7 @@ import org.springframework.messaging.rsocket.annotation.ConnectMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -30,19 +32,17 @@ public class QueueRSocketController {
      * @return
      */
     @MessageMapping("queue.status")
-    public Flux<QueueStatusResponse> streamQueueStatus2(String token) {
-        log.info("소켓 연결 접속 token : {}", token);
-        return queueService.observeQueueStatus(token);
+    public Flux<QueueStatusResponse> streamQueueStatus(@Payload QueueStatusRequest request, Flux<QueueStatusRequest> flux) {
+        log.info("🔥 요청 들어옴 userId: {}", request.userId());
+//        return queueService.observeQueueStatus(token);
+        queueService.addFlux(flux);
+        return queueService.getQueueStatusStream(request.userId());
+//        return Flux.just(new QueueStatusResponse("WAIT", 99));
     }
 
     @ConnectMapping
-    public void onConnect(RSocketRequester requester) {
+    public void onConnect(RSocketRequester requester, @Payload QueueStatusRequest request) {
         System.out.println("🔥 ConnectMapping 호출됨: requester " + requester);
-    }
-
-    @MessageMapping("queue.status")
-    public Flux<QueueStatusResponse> streamQueueStatus(@Payload QueueStatusRequest request) {
-        log.info("🔥 요청 들어옴 userId: {}", request.userId());
-        return Flux.just(new QueueStatusResponse("WAIT", 99));
+        System.out.println("🔥 ConnectMapping 호출됨: QueueStatusRequest " + request);
     }
 }
