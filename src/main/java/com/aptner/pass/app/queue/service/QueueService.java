@@ -52,7 +52,7 @@ public class QueueService {
      * @return 삭제된 항목 수가 0보다 크면 true, 아니면 false
      */
     public boolean removeUserFromQueue(String userId) {
-        Long removed = passRedisTempalte.opsForZSet().remove("queue", "golf");
+        Long removed = passRedisTempalte.opsForZSet().remove(QUEUE_KEY_PREFIX, userId);
         return (removed != null && removed > 0);
     }
 }

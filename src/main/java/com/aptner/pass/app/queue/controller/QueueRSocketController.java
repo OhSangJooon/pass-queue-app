@@ -15,6 +15,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -39,13 +40,13 @@ public class QueueRSocketController {
     }
 
     @MessageMapping("queue.exit")
-    public Mono<String> exitQueue(@Payload QueueStatusRequest request) {
+    public Mono<Map<String, String>> exitQueue(@Payload QueueStatusRequest request) {
         log.info("대기열 나가기 요청 received, userId: {}", request.userId());
         boolean removed = queueService.removeUserFromQueue(request.userId());
-        if(removed) {
-            return Mono.just("대기열 퇴장 처리 완료");
+        if (removed) {
+            return Mono.just(Collections.singletonMap("message", "대기열 퇴장 처리 완료"));
         } else {
-            return Mono.just("대기열에 해당 사용자가 없습니다.");
+            return Mono.just(Collections.singletonMap("message", "대기열에 해당 사용자가 없습니다."));
         }
     }
 
