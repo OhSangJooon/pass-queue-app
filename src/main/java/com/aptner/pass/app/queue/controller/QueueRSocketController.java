@@ -12,6 +12,7 @@ import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.messaging.rsocket.annotation.ConnectMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.Duration;
 import java.util.Map;
@@ -32,17 +33,26 @@ public class QueueRSocketController {
      * @return
      */
     @MessageMapping("queue.status")
-    public Flux<QueueStatusResponse> streamQueueStatus(@Payload QueueStatusRequest request, Flux<QueueStatusRequest> flux) {
+    public Flux<QueueStatusResponse> streamQueueStatus(@Payload QueueStatusRequest request) {
         log.info("🔥 요청 들어옴 userId: {}", request.userId());
-//        return queueService.observeQueueStatus(token);
-        queueService.addFlux(flux);
-        return queueService.getQueueStatusStream(request.userId());
-//        return Flux.just(new QueueStatusResponse("WAIT", 99));
+        return queueService.observeQueueStatus(request);
     }
 
-    @ConnectMapping
-    public void onConnect(RSocketRequester requester, @Payload QueueStatusRequest request) {
-        System.out.println("🔥 ConnectMapping 호출됨: requester " + requester);
-        System.out.println("🔥 ConnectMapping 호출됨: QueueStatusRequest " + request);
+    @MessageMapping("queue.exit")
+    public Mono<String> exitQueue(@Payload QueueStatusRequest request) {
+        log.info("대기열 나가기 요청 received, userId: {}", request.userId());
+        boolean removed = queueService.removeUserFromQueue(request.userId());
+        if(removed) {
+            return Mono.just("대기열 퇴장 처리 완료");
+        } else {
+            return Mono.just("대기열에 해당 사용자가 없습니다.");
+        }
     }
+
+//    @ConnectMapping
+//    public void onConnect(RSocketRequester requester, @Payload QueueStatusRequest request) {
+//        requester.metadata().
+//        System.out.println("🔥 ConnectMapping 호출됨: requester " + requester);
+//        System.out.println("🔥 ConnectMapping 호출됨: QueueStatusRequest " + request);
+//    }
 }

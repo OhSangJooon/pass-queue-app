@@ -18,8 +18,6 @@ import java.time.Duration;
 public class QueueService {
 
     private final RedisTemplate<String, Object> passRedisTempalte;
-    // Sinks.Many를 사용하여 여러 구독자에게 동시에 push할 수 있음.
-    private final Sinks.Many<QueueStatusResponse> statusSink = Sinks.many().multicast().directBestEffort();
 
     private static final String QUEUE_KEY_PREFIX = "queue:golf"; // 예시용. 시설/시간별 분리 가능
     private static final int ENTERABLE_LIMIT = 10; // 입장 허용 인원 (예시)
@@ -48,31 +46,13 @@ public class QueueService {
                 .takeUntil(response -> response.status().equals("READY")); // READY되면 Flux 종료
     }
 
-
-    public void addFlux(Flux<QueueStatusRequest> flux) {
-        
-
-    }
-    // 클라이언트가 구독하면 이 Flux를 통해 상태 업데이트를 받게 됨.
-    public Flux<QueueStatusResponse> getQueueStatusStream(String userId) {
-        // 실전에서는 userId별 필터링을 추가하거나,
-        // 전체 대기열 상태를 반환한 후 클라이언트에서 필요한 부분만 사용하게 할 수 있습니다.
-        return statusSink.asFlux();
-    }
-
-    // 외부(예, Redis ZSET 변경 이벤트)에 의해 상태가 업데이트되면 이 메서드를 호출하여 새로운 이벤트를 emit합니다.
-    public void updateQueueStatus(QueueStatusResponse newStatus) {
-        statusSink.tryEmitNext(newStatus);
-    }
-
-    // 예제: 서버가 주기적으로 상태 업데이트를 발생시키도록 설정 (실제 환경에서는 Redis ZSET 이벤트 등으로 대체)
-    @PostConstruct
-    public void simulateQueueUpdates() {
-        Flux.interval(Duration.ofSeconds(1))
-                .map(i -> {
-                    log.info("update queue  {}" , i);
-                    return new QueueStatusResponse("WAIT", (int) (Math.random() * 100));
-                })
-                .subscribe(this::updateQueueStatus);
+    /**
+     * Redis ZSET에서 사용자 삭제.
+     * @param userId 삭제할 사용자 ID
+     * @return 삭제된 항목 수가 0보다 크면 true, 아니면 false
+     */
+    public boolean removeUserFromQueue(String userId) {
+        Long removed = passRedisTempalte.opsForZSet().remove("queue", "golf");
+        return (removed != null && removed > 0);
     }
 }
